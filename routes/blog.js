@@ -32,4 +32,39 @@ router.post('/posts', async function (req, res){
     
     res.redirect('/posts');
 });
+
+router.get('/posts/:id', async function(req,res){
+    const query = `
+        SELECT posts.*, authors.name AS author_name, authors.email AS author_email FROM posts
+        INNER JOIN authors ON posts.author_id = authors.id
+        WHERE posts.id = ?
+    `;
+    const [posts] = await db.query(query, [req.params.id]);
+
+    if (!posts || posts.length === 0){
+        return res.status(404).render('404');    //return to stop next lines from executing
+    }
+
+    const postData = {
+        ...posts[0],
+        date: posts[0].date.toISOString(),
+        readableDate: posts[0].date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        }),
+    };
+
+    res.render('post-detail', {post: postData});
+});
+
+
+router.get('/posts/:id/edit', function (req,res){
+    
+    
+    
+    res.render('update-post');
+});
+
 module.exports = router;
